@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ระบบนับยอดทหาร</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap');
+
+  :root {
+    --army-dark: #1a2a1a;
+    --army-green: #2d4a1e;
+    --army-mid: #3d6b2a;
+    --army-light: #5a8f3c;
+    --army-tan: #c8b888;
+    --army-khaki: #8a7a5a;
+    --accent-gold: #d4a820;
+    --accent-red: #c0392b;
+    --accent-blue: #2471a3;
+    --bg-main: #0f1a0f;
+    --bg-card: #1c2e1c;
+    --bg-input: #243824;
+    --border: #3a5a2a;
+    --text-primary: #e8e0cc;
+    --text-secondary: #a8a090;
+    --text-muted: #6a6258;
+    --shadow: 0 4px 20px rgba(0,0,0,0.5);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Sarabun', sans-serif;
+    background: var(--bg-main);
+    color: var(--text-primary);
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  /* HEADER */
+  header {
+    background: linear-gradient(135deg, var(--army-dark) 0%, var(--army-green) 100%);
+    border-bottom: 3px solid var(--accent-gold);
+    padding: 18px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.7);
+  }
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .emblem {
+    width: 48px;
+    height: 48px;
+    background: var(--accent-gold);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    box-shadow: 0 2px 10px rgba(212,168,32,0.5);
+    flex-shrink: 0;
+  }
+
+  header h1 {
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    color: var(--army-tan);
+    line-height: 1.2;
+  }
+
+  header h1 span {
+    display: block;
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--text-secondary);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+
+  .header-time {
+    text-align: right;
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+  }
+
+  .header-time strong {
+    display: block;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--accent-gold);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* MAIN */
+  main {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 20px 16px 40px;
+  }
+
+  /* TOTAL SUMMARY BAR */
+  .total-bar {
+    background: linear-gradient(135deg, var(--army-green), var(--army-mid));
+    border: 1px solid var(--accent-gold);
+    border-radius: 12px;
+    padding: 16px 24px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    box-shadow: var(--shadow);
+  }
+
+  .total-bar-label {
+    font-size: 13px;
+    color: var(--army-tan);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-weight: 600;
+  }
+
+  .total-main {
+    display: flex;
+    gap: 32px;
+    flex-wrap: wrap;
+  }
+
+  .total-stat {
+    text-align: center;
+  }
+
+  .total-stat .num {
+    font-size: 32px;
+    font-weight: 700;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .total-stat .lbl {
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-top: 2px;
+  }
+
+  .num-gold { color: var(--accent-gold); }
+  .num-green { color: #7fc45a; }
+  .num-red { color: #e74c3c; }
+  .num-blue { color: #5dade2; }
+
+  /* SUMMARY PILLS */
+  .summary-pills {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+
+  .pill {
+    flex: 1;
+    min-width: 130px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: var(--shadow);
+  }
+
+  .pill-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  .pill-icon.red { background: rgba(192,57,43,0.2); }
+  .pill-icon.blue { background: rgba(36,113,163,0.2); }
+  .pill-icon.orange { background: rgba(211,84,0,0.2); }
+  .pill-icon.gray { background: rgba(100,100,100,0.2); }
+
+  .pill-body .num {
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .pill-body .lbl {
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-top: 2px;
+  }
+
+  /* PLATOON GRID */
+  .platoons-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+
+  @media (max-width: 680px) {
+    .platoons-grid { grid-template-columns: 1fr; }
+    .total-main { gap: 16px; }
+  }
+
+  .platoon-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+
+  .platoon-header {
+    background: var(--army-green);
+    padding: 12px 16px;
+    border-bottom: 2px solid var(--accent-gold);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .platoon-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--army-tan);
+    letter-spacing: 0.04em;
+  }
+
+  .platoon-base {
+    font-size: 12px;
+    color: var(--accent-gold);
+    font-weight: 600;
+  }
+
+  .platoon-body {
+    padding: 14px 16px;
+  }
+
+  /* FIELD */
+  .field {
+    margin-bottom: 10px;
+  }
+
+  .field label {
+    display: block;
+    font-size: 11px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 4px;
+    font-weight: 600;
+  }
+
+  .field input[type="number"] {
+    width: 100%;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    color: var(--text-primary);
+    font-family: 'Sarabun', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    padding: 8px 10px;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    -moz-appearance: textfield;
+  }
+
+  .field input[type="number"]::-webkit-inner-spin-button,
+  .field input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+  }
+
+  .field input[type="number"]:focus {
+    outline: none;
+    border-color: var(--accent-gold);
+    box-shadow: 0 0 0 3px rgba(212,168,32,0.15);
+  }
+
+  .field input.present-input {
+    font-size: 20px;
+    padding: 10px 12px;
+    border-color: var(--army-light);
+    text-align: center;
+  }
+
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 12px 0;
+  }
+
+  .field-group-title {
+    font-size: 10px;
+    color: var(--accent-gold);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-weight: 700;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .field-group-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .sub-fields {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  /* PLATOON STATUS */
+  .platoon-status {
+    margin-top: 12px;
+    background: var(--bg-input);
+    border-radius: 8px;
+    padding: 10px 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid var(--border);
+  }
+
+  .status-item {
+    text-align: center;
+  }
+
+  .status-item .s-num {
+    font-size: 16px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .status-item .s-lbl {
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-top: 1px;
+  }
+
+  .status-divider {
+    width: 1px;
+    height: 30px;
+    background: var(--border);
+  }
+
+  /* RESET BUTTON */
+  .btn-row {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 24px;
+  }
+
+  .btn-reset {
+    background: linear-gradient(135deg, #7b1a1a, #c0392b);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 11px 28px;
+    font-family: 'Sarabun', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+    box-shadow: 0 3px 12px rgba(192,57,43,0.4);
+    transition: transform 0.1s, box-shadow 0.1s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .btn-reset:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 5px 18px rgba(192,57,43,0.5);
+  }
+
+  .btn-reset:active {
+    transform: translateY(0);
+  }
+
+  /* WARNING */
+  .warn-tag {
+    display: inline-block;
+    background: rgba(192,57,43,0.15);
+    border: 1px solid rgba(192,57,43,0.4);
+    color: #e74c3c;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 4px;
+    letter-spacing: 0.08em;
+  }
+
+  /* Footer */
+  footer {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 11px;
+    margin-top: 10px;
+    letter-spacing: 0.06em;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <div class="emblem">⭐</div>
+    <h1>
+      ระบบนับยอดกำลังพล
+      <span>Military Personnel Tracker</span>
+    </h1>
+  </div>
+  <div class="header-time">
+    <strong id="clock">--:--:--</strong>
+    <span id="dateTxt"></span>
+  </div>
+</header>
+
+<main>
+
+  <!-- TOTAL BAR -->
+  <div class="total-bar">
+    <div>
+      <div class="total-bar-label">ยอดรวมทั้งหมด</div>
+      <div style="font-size:11px;color:var(--text-muted);margin-top:3px;">กำลังพลทั้ง 3 หมวด</div>
+    </div>
+    <div class="total-main">
+      <div class="total-stat">
+        <div class="num num-gold" id="t-base">103</div>
+        <div class="lbl">ยอดเดิม</div>
+      </div>
+      <div class="total-stat">
+        <div class="num num-green" id="t-present">0</div>
+        <div class="lbl">อยู่ประจำ</div>
+      </div>
+      <div class="total-stat">
+        <div class="num num-red" id="t-out">0</div>
+        <div class="lbl">ยอดจำหน่าย</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SUMMARY PILLS -->
+  <div class="summary-pills">
+    <div class="pill">
+      <div class="pill-icon red">🏥</div>
+      <div class="pill-body">
+        <div class="num num-red" id="s-hospital">0</div>
+        <div class="lbl">รวม รพ. (3 หมวด)</div>
+      </div>
+    </div>
+    <div class="pill">
+      <div class="pill-icon blue">🏠</div>
+      <div class="pill-body">
+        <div class="num num-blue" id="s-home">0</div>
+        <div class="lbl">รวม หพ. (3 หมวด)</div>
+      </div>
+    </div>
+    <div class="pill">
+      <div class="pill-icon orange">🍚</div>
+      <div class="pill-body">
+        <div class="num num-gold" id="s-food">0</div>
+        <div class="lbl">รวม ตักข้าว (3 หมวด)</div>
+      </div>
+    </div>
+    <div class="pill">
+      <div class="pill-icon gray">📋</div>
+      <div class="pill-body">
+        <div class="num" id="s-other" style="color:#aaa;">0</div>
+        <div class="lbl">รวม อื่นๆ (3 หมวด)</div>
+      </div>
+    </div>
+    <div class="pill" style="border-color:var(--accent-gold);background:rgba(212,168,32,0.08);">
+      <div class="pill-icon" style="background:rgba(212,168,32,0.15);font-size:20px;">⚠️</div>
+      <div class="pill-body">
+        <div class="num num-gold" id="s-allout">0</div>
+        <div class="lbl">รพ. + หพ. + อื่นๆ รวม</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PLATOON CARDS -->
+  <div class="platoons-grid" id="platoonGrid"></div>
+
+  <!-- RESET BUTTON -->
+  <div class="btn-row">
+    <button class="btn-reset" onclick="resetAll()">
+      🔄 รีเซ็ตค่าทั้งหมด
+    </button>
+  </div>
+
+  <footer>ระบบนับยอดกำลังพล · อัปเดตอัตโนมัติเมื่อกรอกข้อมูล</footer>
+</main>
+
+<script>
+const PLATOONS = [
+  { id: 1, name: 'หมวดที่ 1', base: 37 },
+  { id: 2, name: 'หมวดที่ 2', base: 34 },
+  { id: 3, name: 'หมวดที่ 3', base: 32 },
+];
+const TOTAL_BASE = 103;
+
+function buildCards() {
+  const grid = document.getElementById('platoonGrid');
+  grid.innerHTML = '';
+  PLATOONS.forEach(p => {
+    grid.innerHTML += `
+    <div class="platoon-card" id="card-${p.id}">
+      <div class="platoon-header">
+        <div class="platoon-title">${p.name}</div>
+        <div class="platoon-base">ยอดเดิม: ${p.base} นาย</div>
+      </div>
+      <div class="platoon-body">
+        <div class="field">
+          <label>🪖 ยอดปัจจุบัน (นาย)</label>
+          <input type="number" class="present-input" id="p${p.id}-present" min="0" max="${p.base}" placeholder="0"
+            oninput="recalc()">
+        </div>
+
+        <div class="divider"></div>
+        <div class="field-group-title">จำหน่าย</div>
+        <div class="sub-fields">
+          <div class="field">
+            <label>🏥 รพ.</label>
+            <input type="number" id="p${p.id}-hospital" min="0" placeholder="0" oninput="recalc()">
+          </div>
+          <div class="field">
+            <label>🏠 หพ.</label>
+            <input type="number" id="p${p.id}-home" min="0" placeholder="0" oninput="recalc()">
+          </div>
+          <div class="field">
+            <label>🍚 ตักข้าว</label>
+            <input type="number" id="p${p.id}-food" min="0" placeholder="0" oninput="recalc()">
+          </div>
+          <div class="field">
+            <label>📋 อื่นๆ</label>
+            <input type="number" id="p${p.id}-other" min="0" placeholder="0" oninput="recalc()">
+          </div>
+        </div>
+
+        <div class="platoon-status">
+          <div class="status-item">
+            <div class="s-num num-green" id="p${p.id}-stat-present">-</div>
+            <div class="s-lbl">อยู่</div>
+          </div>
+          <div class="status-divider"></div>
+          <div class="status-item">
+            <div class="s-num num-red" id="p${p.id}-stat-out">-</div>
+            <div class="s-lbl">จำหน่าย</div>
+          </div>
+          <div class="status-divider"></div>
+          <div class="status-item">
+            <div class="s-num" id="p${p.id}-stat-diff" style="color:var(--text-muted)">-</div>
+            <div class="s-lbl">ผลต่าง</div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  });
+}
+
+function getVal(id) {
+  const el = document.getElementById(id);
+  return el ? (parseInt(el.value) || 0) : 0;
+}
+
+function recalc() {
+  let totalPresent = 0, totalOut = 0;
+  let sumHospital = 0, sumHome = 0, sumFood = 0, sumOther = 0;
+
+  PLATOONS.forEach(p => {
+    const present = getVal(`p${p.id}-present`);
+    const hospital = getVal(`p${p.id}-hospital`);
+    const home = getVal(`p${p.id}-home`);
+    const food = getVal(`p${p.id}-food`);
+    const other = getVal(`p${p.id}-other`);
+    const out = hospital + home + food + other;
+
+    totalPresent += present;
+    totalOut += out;
+    sumHospital += hospital;
+    sumHome += home;
+    sumFood += food;
+    sumOther += other;
+
+    const diff = p.base - present - out;
+
+    document.getElementById(`p${p.id}-stat-present`).textContent = present;
+    document.getElementById(`p${p.id}-stat-out`).textContent = out;
+
+    const diffEl = document.getElementById(`p${p.id}-stat-diff`);
+    diffEl.textContent = diff === 0 ? '✓' : (diff > 0 ? `+${diff}` : diff);
+    diffEl.style.color = diff === 0 ? '#7fc45a' : '#e74c3c';
+  });
+
+  document.getElementById('t-present').textContent = totalPresent;
+  document.getElementById('t-out').textContent = totalOut;
+  document.getElementById('t-base').textContent = TOTAL_BASE;
+
+  document.getElementById('s-hospital').textContent = sumHospital;
+  document.getElementById('s-home').textContent = sumHome;
+  document.getElementById('s-food').textContent = sumFood;
+  document.getElementById('s-other').textContent = sumOther;
+  document.getElementById('s-allout').textContent = sumHospital + sumHome + sumOther;
+}
+
+function resetAll() {
+  if (!confirm('ยืนยันการรีเซ็ตค่าทั้งหมด?')) return;
+  const inputs = document.querySelectorAll('input[type="number"]');
+  inputs.forEach(el => el.value = '');
+  recalc();
+  PLATOONS.forEach(p => {
+    ['stat-present','stat-out','stat-diff'].forEach(s => {
+      const el = document.getElementById(`p${p.id}-${s}`);
+      if (el) { el.textContent = '-'; el.style.color = ''; }
+    });
+  });
+}
+
+// Clock
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clock').textContent =
+    now.toLocaleTimeString('th-TH', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+  document.getElementById('dateTxt').textContent =
+    now.toLocaleDateString('th-TH', {weekday:'short', day:'numeric', month:'short', year:'numeric'});
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+buildCards();
+recalc();
+</script>
+</body>
+</html>
